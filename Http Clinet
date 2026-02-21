@@ -1,0 +1,173 @@
+Exampel for RESTTEMPLATE and WEBCLIENT
+
+RESTTEMPLATE : RestTamplate is a synchronous (Blocking) HTTP client for consuming Rest API'S.
+               if any request will send to the server it will wait until response come.And other thread will be in waiting state.
+
+
+WEBCLIENT : Webclient is a asynchronous (non-blocking) reative Http client for consuming the Rest API's is introduce in spring 5.
+
+
+  EXAMPLE :-
+
+✅ Step 1: Add Dependency
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-webflux</artifactId>
+</dependency>
+
+✅ Step 2: Create WebClient Bean
+
+@Configuration
+public class WebClientConfig {
+
+    @Bean
+    public WebClient webClient() {
+        return WebClient.builder()
+                .baseUrl("https://jsonplaceholder.typicode.com")   // base url
+                .build();
+    }
+}
+
+✅ Step 3: Create DTO
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Post {
+
+    private Long userId;
+    private Long id;
+    private String title;
+    private String body;
+}
+✅ Step 4: Create Service (CRUD Operations)
+@Service
+public class PostService {
+
+    @Autowired
+    private WebClient webClient;
+
+    // 🔹 CREATE (POST)
+    public Post createPost(Post post) {
+        return webClient.post()
+                .uri("/posts")
+                .bodyValue(post)
+                .retrieve()
+                .bodyToMono(Post.class)
+                .block();
+    }
+
+    // 🔹 READ (GET by id)
+    public Post getPostById(Long id) {
+        return webClient.get()
+                .uri("/posts/{id}", id)
+                .retrieve()
+                .bodyToMono(Post.class)
+                .block();
+    }
+
+    // 🔹 READ (GET all)
+    public List<Post> getAllPosts() {
+        return webClient.get()
+                .uri("/posts")
+                .retrieve()
+                .bodyToFlux(Post.class)
+                .collectList()
+                .block();
+    }
+
+    // 🔹 UPDATE (PUT)
+    public Post updatePost(Long id, Post post) {
+        return webClient.put()
+                .uri("/posts/{id}", id)
+                .bodyValue(post)
+                .retrieve()
+                .bodyToMono(Post.class)
+                .block();
+    }
+
+    // 🔹 DELETE
+    public String deletePost(Long id) {
+        webClient.delete()
+                .uri("/posts/{id}", id)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+
+        return "Deleted Successfully";
+    }
+}
+
+🔥 Important Interview Point
+
+You used:
+
+bodyToMono() → Single object
+
+bodyToFlux() → Multiple objects
+
+.block() → Converts reactive to synchronous
+
+If using full reactive app (WebFlux controller), then remove .block() and return Mono<Post> or Flux<Post>.
+
+=====================================================================================================
+
+RestTemplate :- Example
+
+✅ Step 1: Create RestTemplate Bean
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+}
+✅ Step 2: Create DTO
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Post {
+
+    private Long userId;
+    private Long id;
+    private String title;
+    private String body;
+}
+✅ Step 3: Create Service (CRUD)
+@Service
+public class PostService {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    private final String BASE_URL = "https://jsonplaceholder.typicode.com/posts";
+
+    // 🔹 CREATE (POST)
+    public Post createPost(Post post) {
+        return restTemplate.postForObject(BASE_URL, post, Post.class);
+    }
+
+    // 🔹 READ (GET by ID)
+    public Post getPostById(Long id) {
+        return restTemplate.getForObject(BASE_URL + "/" + id, Post.class);
+    }
+
+    // 🔹 READ (GET ALL)
+    public List<Post> getAllPosts() {
+        Post[] posts = restTemplate.getForObject(BASE_URL, Post[].class);
+        return Arrays.asList(posts);
+    }
+
+    // 🔹 UPDATE (PUT)
+    public String updatePost(Long id, Post post) {
+        restTemplate.put(BASE_URL + "/" + id, post);
+        return "Updated Successfully";
+    }
+
+    // 🔹 DELETE
+    public String deletePost(Long id) {
+        restTemplate.delete(BASE_URL + "/" + id);
+        return "Deleted Successfully";
+    }
+}
+
