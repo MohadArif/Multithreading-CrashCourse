@@ -290,6 +290,48 @@ class ThreadLocalExample {
 Value: Thread-0
 Value: Thread-1
 
+package com.practics.threadPractics;
+
+public class ThreadLocalExample {
+    /**
+     * here the threadlocal will create seperate variable for each thread.
+     */
+    private final static ThreadLocal<Long> threadLocal=new ThreadLocal<>();
+    public static void main(String[] args) {
+
+         long userId=1234L;
+         long userId2=6543L;
+
+        new Thread(()->{
+          try{
+              threadLocal.set(userId);
+              System.out.println("Value : "+ threadLocal.get());
+          }catch (Exception e){
+              System.out.println(e.getMessage());
+          }finally {
+              threadLocal.remove();
+//              System.out.println("value removed : "+threadLocal.get());
+          }
+        }).start();
+
+        new Thread(()->{
+          try{
+              threadLocal.set(userId2);
+              System.out.println("Value : "+ threadLocal.get());
+          }catch (Exception e){
+              System.out.println(e.getMessage());
+          }finally {
+              threadLocal.remove();
+//              System.out.println("value removed : "+threadLocal.get());
+          }
+        }).start();
+
+    }
+}
+  output  : 
+           Value : 1234
+           Value : 6543
+
 Each thread stores and prints its own value.
 
 🔹 Important Methods
