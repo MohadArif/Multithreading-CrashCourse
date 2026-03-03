@@ -480,6 +480,157 @@ Because:
 
 Thread pools reuse threads.
 
+
+======================================================================================
+
+🔹 What is ExecutorService in Java?
+
+ExecutorService is an interface from:
+
+📦 java.util.concurrent
+
+It is used to:
+
+✅ Manage and control a pool of threads
+✅ Execute tasks asynchronously
+✅ Reuse threads instead of creating new ones
+
+It is an advanced version of Executor.
+
+🔥 Why Not Create Threads Manually?
+
+Instead of:
+
+new Thread(() -> {
+    // task
+}).start();
+
+Problems:
+
+Creates new thread every time ❌
+
+High memory usage ❌
+
+Hard to manage ❌
+
+No lifecycle control ❌
+
+So Java introduced Executor Framework.
+
+🔹 How to Create ExecutorService
+
+Most common way:
+
+ExecutorService executor = Executors.newFixedThreadPool(2);
+
+Other options:
+
+Method	Description
+newFixedThreadPool(n)	Fixed number of threads
+newCachedThreadPool()	Creates threads as needed
+newSingleThreadExecutor()	Only one thread
+newScheduledThreadPool(n)	For delayed/scheduled tasks
+🔹 Basic Example
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class ExecutorExample {
+
+    public static void main(String[] args) {
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        executor.submit(() -> {
+            System.out.println("Task executed by: " +
+                    Thread.currentThread().getName());
+        });
+
+        executor.shutdown();
+    }
+}
+🔹 Important Methods
+Method	Purpose
+submit()	Submit task (returns Future)
+execute()	Run task (no return)
+shutdown()	Stop accepting new tasks
+shutdownNow()	Stop immediately
+awaitTermination()	Wait for completion
+🔥 submit() vs execute()
+execute()
+
+Returns nothing
+
+Used for Runnable
+
+submit()
+
+Returns Future
+
+Can get result
+
+Example with return value:
+
+ExecutorService executor = Executors.newFixedThreadPool(1);
+
+Future<Integer> future = executor.submit(() -> {
+    return 10 + 20;
+});
+
+System.out.println("Result: " + future.get());
+
+executor.shutdown();
+🔹 What is Future?
+
+Future represents the result of asynchronous computation.
+
+You can:
+
+Check if done
+
+Get result
+
+Cancel task
+
+🔥 Internal Working
+
+Behind the scenes:
+
+ExecutorService uses:
+
+👉 ThreadPoolExecutor
+
+Structure:
+
+Task → Queue → Thread → Execution
+🔴 Very Important for You (Spring Boot Developer)
+
+In Spring Boot:
+
+@Async
+
+ThreadPoolTaskExecutor
+
+Web request handling
+
+All use ExecutorService internally.
+
+🔥 ThreadLocal + ExecutorService Danger
+
+Since threads are reused in pool:
+
+If you forget:
+
+threadLocal.remove();
+
+Data can leak between tasks.
+
+Very common interview question.
+
+🏆 Interview Definition
+
+ExecutorService is a sub-interface of Executor that manages a pool of threads and provides methods to submit tasks,
+control execution, and retrieve results asynchronously.
+
 Threads are not newly created.
 
 So inheritance does not happen.
