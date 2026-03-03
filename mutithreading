@@ -229,3 +229,113 @@ public class RaceCondition_Problem {
     }
 }
 
+
+======================================================================================
+
+🔹 What is ThreadLocal in Java?
+
+ThreadLocal is a class in Java that provides thread-specific variables.
+
+👉 It means each thread has its own separate copy of a variable.
+Even if multiple threads access the same ThreadLocal object, they cannot see each other’s values.
+
+🔹 Why Do We Need ThreadLocal?
+
+Normally, instance variables are shared between threads, which may cause:
+
+Race conditions
+
+Data inconsistency
+
+Synchronization issues
+
+But ThreadLocal solves this by giving:
+
+✅ Independent variable per thread
+
+🔹 Real-Life Example
+
+Imagine:
+
+3 users are using an e-commerce application.
+
+Each user request is handled by a different thread.
+
+You want to store userId for the current request.
+
+If you use a normal variable → It may get overridden by another thread.
+
+If you use ThreadLocal → Each thread stores its own userId.
+
+🔹 Simple Example in Java
+class ThreadLocalExample {
+
+    private static ThreadLocal<String> threadLocal = new ThreadLocal<>();
+
+    public static void main(String[] args) {
+
+        Runnable task = () -> {
+            threadLocal.set(Thread.currentThread().getName());
+            System.out.println("Value: " + threadLocal.get());
+        };
+
+        Thread t1 = new Thread(task);
+        Thread t2 = new Thread(task);
+
+        t1.start();
+        t2.start();
+    }
+}
+🔹 Output (Example)
+Value: Thread-0
+Value: Thread-1
+
+Each thread stores and prints its own value.
+
+🔹 Important Methods
+Method	Meaning
+set(value)	Set value for current thread
+get()	Get value for current thread
+remove()	Remove value (very important to avoid memory leaks)
+🔹 Where ThreadLocal is Used in Real Applications?
+
+Since you're learning Spring Boot and backend development 👨‍💻, this is important:
+
+1️⃣ In Spring Security
+
+To store logged-in user information per request.
+
+2️⃣ In Hibernate
+
+To store session per thread.
+
+3️⃣ In Logging (MDC)
+
+To store requestId for tracking logs.
+
+🔹 ThreadLocal vs Normal Variable
+Normal Variable	ThreadLocal
+Shared between threads	Separate copy per thread
+Needs synchronization	No synchronization needed
+Can cause race condition	No race condition
+🔹 Important Warning ⚠
+
+If you're using ThreadPool (like in Spring Boot web apps):
+
+👉 Always call remove() after work is done.
+
+Why?
+Because threads are reused in thread pools → old data may leak to next request.
+
+Example:
+
+try {
+    threadLocal.set("User1");
+    // business logic
+} finally {
+    threadLocal.remove();
+}
+🔹 Simple Definition (Interview Ready)
+
+ThreadLocal is a Java class that allows us to create thread-specific variables where each thread has its own independent 
+copy of the variable, preventing shared data conflicts.
