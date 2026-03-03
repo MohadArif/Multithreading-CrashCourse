@@ -381,3 +381,107 @@ try {
 
 ThreadLocal is a Java class that allows us to create thread-specific variables where each thread has its own independent 
 copy of the variable, preventing shared data conflicts.
+
+
+🔹 What is InheritableThreadLocal?
+
+InheritableThreadLocal is a subclass of ThreadLocal.
+
+👉 It allows a child thread to inherit the value of the parent thread.
+
+🔹 Normal ThreadLocal Behavior
+
+With normal ThreadLocal:
+
+Parent thread sets value
+
+Child thread CANNOT see it
+
+Example:
+
+ThreadLocal<String> tl = new ThreadLocal<>();
+
+tl.set("ParentValue");
+
+new Thread(() -> {
+    System.out.println(tl.get()); // null
+}).start();
+
+Child gets null.
+
+🔹 InheritableThreadLocal Behavior
+
+With InheritableThreadLocal:
+
+Parent sets value
+
+Child thread automatically gets a copy of that value
+
+Example:
+
+InheritableThreadLocal<String> itl = new InheritableThreadLocal<>();
+
+itl.set("ParentValue");
+
+new Thread(() -> {
+    System.out.println(itl.get()); // ParentValue
+}).start();
+
+✔ Child inherits parent’s value.
+
+🔥 How It Works Internally
+
+Every Thread in Java has:
+
+ThreadLocalMap → for ThreadLocal
+
+inheritableThreadLocals → for InheritableThreadLocal
+
+When a child thread is created:
+
+JVM copies parent's inheritable values into child.
+
+🔹 Important Interview Question
+
+If parent changes value after child creation, will child see updated value?
+
+❌ No.
+
+Because child gets a copy at the time of thread creation, not a live reference.
+
+🔹 Real Example With Both
+public class InheritableExample {
+
+    private static InheritableThreadLocal<String> itl =
+            new InheritableThreadLocal<>();
+
+    public static void main(String[] args) {
+
+        itl.set("Parent Thread Value");
+
+        Thread child = new Thread(() -> {
+            System.out.println("Child Value: " + itl.get());
+        });
+
+        child.start();
+    }
+}
+
+Output:
+
+Child Value: Parent Thread Value
+🔴 Very Important Warning (For Spring Boot Developers Like You)
+
+InheritableThreadLocal does NOT work properly with ThreadPool.
+
+Why?
+
+Because:
+
+Thread pools reuse threads.
+
+Threads are not newly created.
+
+So inheritance does not happen.
+
+That’s why frameworks like Spring Security do not rely only on InheritableThreadLocal in thread pools.
