@@ -109,6 +109,83 @@ bodyToFlux() → Multiple objects
 
 If using full reactive app (WebFlux controller), then remove .block() and return Mono<Post> or Flux<Post>.
 
+
+
+Good 🔥 let’s move to the next important real-world step:
+
+✅ Handling Errors in WebClient (VERY Important for Interviews + Real Projects)
+
+Right now your code works only when API returns 200 OK.
+
+But what if:
+
+API returns 404
+
+API returns 500
+
+API is down
+
+Timeout happens
+
+If you don’t handle this → your app will throw exception.
+
+🔥 Proper Error Handling with onStatus()
+@GetMapping("/getAllPost")
+public Mono<List<Product>> getAllPost() {
+
+    return webClient.get()
+            .uri("objects")
+            .retrieve()
+            .onStatus(
+                    status -> status.is4xxClientError(),
+                    response -> Mono.error(new RuntimeException("Client Error!"))
+            )
+            .onStatus(
+                    status -> status.is5xxServerError(),
+                    response -> Mono.error(new RuntimeException("Server Error!"))
+            )
+            .bodyToFlux(Product.class)
+            .collectList();
+}
+✅ Global Fallback Handling
+
+You can also use:
+
+.onErrorResume(ex -> {
+    System.out.println("Error occurred: " + ex.getMessage());
+    return Mono.just(Collections.emptyList());
+})
+
+This prevents application crash.
+
+🚀 Next Level: Timeout Configuration
+
+By default, WebClient (from Spring WebFlux) uses Netty.
+
+Add timeout in config:
+
+@Bean
+public WebClient webClient() {
+    return WebClient.builder()
+            .baseUrl("https://api.restful-api.dev/")
+            .build();
+}
+
+Or add request timeout per call:
+
+.timeout(Duration.ofSeconds(5))
+🎯 Interview Question They Ask
+
+👉 How do you handle errors in WebClient?
+
+Answer:
+
+Using onStatus() for HTTP errors
+
+Using onErrorResume() for fallback
+
+Using timeout() for slow API
+
 =====================================================================================================
 
 RestTemplate :- Example
