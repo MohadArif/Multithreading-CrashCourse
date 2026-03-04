@@ -85,6 +85,23 @@ public class PostService {
                 .block();
     }
 
+✅ Correct Way (Proper Reactive Way – WebFlux)
+@PutMapping("/update/{id}")
+public Mono<Object> updateObject(@PathVariable Long id,
+                                 @RequestBody Object newObject) {
+
+    return webClient.get()
+            .uri("objects/{id}", id)
+            .retrieve()
+            .bodyToMono(Object.class)
+            .flatMap(existing ->
+                    webClient.put()
+                            .uri("objects/{id}", id)
+                            .bodyValue(newObject)
+                            .retrieve()
+                            .bodyToMono(Object.class)
+            );
+}
     // 🔹 DELETE
     public String deletePost(Long id) {
         webClient.delete()
