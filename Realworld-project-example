@@ -1,0 +1,187 @@
+Real World Application: High-Concurrency Order Processing
+
+Imagine an e-commerce website.
+
+When a user places an order, many things happen:
+
+1 User Order Request
+        │
+        ▼
+1. Save Order
+2. Check Inventory
+3. Payment Processing
+4. Send Email
+5. Notify Delivery Service
+
+Each of these tasks may involve I/O operations (database, API calls).
+
+With traditional threads this can consume many resources.
+
+With Virtual Threads (introduced in Java 21), we can handle thousands of requests efficiently.
+
+Project Structure (Spring Boot)
+
+Using Spring Boot
+
+src/main/java
+│
+├── controller
+│     OrderController
+│
+├── service
+│     OrderService
+│
+└── config
+      VirtualThreadConfig
+1️⃣ Virtual Thread Configuration
+package com.example.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+@Configuration
+public class VirtualThreadConfig {
+
+    @Bean
+    public ExecutorService virtualExecutor() {
+        return Executors.newVirtualThreadPerTaskExecutor();
+    }
+}
+
+Here every task runs on a virtual thread.
+
+2️⃣ Order Service
+package com.example.service;
+
+import org.springframework.stereotype.Service;
+
+import java.util.concurrent.ExecutorService;
+
+@Service
+public class OrderService {
+
+    private final ExecutorService executor;
+
+    public OrderService(ExecutorService executor) {
+        this.executor = executor;
+    }
+
+    public void processOrder(String orderId) {
+
+        executor.submit(() -> checkInventory(orderId));
+        executor.submit(() -> processPayment(orderId));
+        executor.submit(() -> sendEmail(orderId));
+        executor.submit(() -> notifyDelivery(orderId));
+    }
+
+    private void checkInventory(String orderId) {
+        System.out.println("Checking inventory for " + orderId +
+                " Thread: " + Thread.currentThread());
+    }
+
+    private void processPayment(String orderId) {
+        System.out.println("Processing payment for " + orderId +
+                " Thread: " + Thread.currentThread());
+    }
+
+    private void sendEmail(String orderId) {
+        System.out.println("Sending email for " + orderId +
+                " Thread: " + Thread.currentThread());
+    }
+
+    private void notifyDelivery(String orderId) {
+        System.out.println("Notifying delivery for " + orderId +
+                " Thread: " + Thread.currentThread());
+    }
+}
+
+Each task runs concurrently using virtual threads.
+
+3️⃣ Controller
+package com.example.controller;
+
+import com.example.service.OrderService;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/orders")
+public class OrderController {
+
+    private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @PostMapping("/{id}")
+    public String placeOrder(@PathVariable String id) {
+
+        orderService.processOrder(id);
+
+        return "Order placed successfully";
+    }
+}
+How It Works
+
+User sends request:
+
+POST /orders/101
+
+Execution flow:
+
+Request
+   │
+   ▼
+OrderController
+   │
+   ▼
+OrderService
+   │
+   ▼
+Virtual Threads
+   │ │ │ │
+   ▼ ▼ ▼ ▼
+Inventory Payment Email Delivery
+
+All tasks run in parallel.
+
+Why Virtual Threads Help
+
+Without virtual threads:
+
+10,000 requests
+=
+10,000 platform threads
+
+Memory problem.
+
+With virtual threads:
+
+10,000 requests
+=
+10,000 virtual threads
+=
+Only ~10 platform threads internally
+
+Much more scalable.
+
+Where Virtual Threads Are Used in Real Systems
+
+Web servers
+
+API gateways
+
+Microservices
+
+Database calls
+
+External API calls
+
+They are especially useful for I/O heavy applications.
+
+Interview One-Line Answer
+
+Virtual threads can be used in high-concurrency systems like e-commerce order processing, where thousands of requests perform I/O operations concurrently without consuming large system resources.
